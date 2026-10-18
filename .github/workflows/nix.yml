@@ -28,9 +28,8 @@ jobs:
           EXTRA_ARGS: ${{ inputs.extra-args }}
         run: |
           if [ -f flake.nix ]; then
-            # The caller's argument list is data. Word-splitting applies; shell syntax does not.
-            # shellcheck disable=SC2086
-            nix flake check ${EXTRA_ARGS:-}
+            # One line: the runner's Python rejects an indented statement in python3 -c.
+            python3 -c 'import os,shlex,subprocess,sys; extra=shlex.split(os.environ.get("EXTRA_ARGS", "")); raise SystemExit(subprocess.call(["nix","flake","check"]+extra))'
           else
             echo "No flake.nix present in this repository; skipping check."
           fi

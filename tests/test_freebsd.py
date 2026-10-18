@@ -168,6 +168,11 @@ fi
         start = BUILD_TEMPLATE.index("python3 -c '") + len("python3 -c '")
         body = BUILD_TEMPLATE[start:BUILD_TEMPLATE.index("'", start)].lstrip("\n")
         self.assertFalse(body[:1].isspace(), body[:80])
+        nix = yaml.load((ROOT / ".github/workflows/nix.yml").read_text(), Loader=yaml.BaseLoader)
+        nix_script = nix["jobs"]["eval"]["steps"][-1]["run"]
+        nix_start = nix_script.index("python3 -c '") + len("python3 -c '")
+        nix_body = nix_script[nix_start:nix_script.index("'", nix_start)].lstrip("\n")
+        self.assertFalse(nix_body[:1].isspace(), nix_body[:80])
 
     def test_successful_custom_tests_reach_packaging(self):
         result = self.run_vm(command="cargo test --lib\ncargo test --doc")
