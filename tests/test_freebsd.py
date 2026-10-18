@@ -158,6 +158,22 @@ fi
         self.assertNotEqual(result["code"], 0, result)
         self.assertFalse(result["packaged"], result)
 
+    def test_argument_parsers_are_not_indented(self):
+        # python3 -c rejects a leading indent on the GitHub-hosted runner.
+        for path, marker in (
+            (WORKFLOW, "os.environ.get(sys.argv[1], \"\")"),
+            (ROOT / ".github/workflows/nix.yml", "os.environ.get(\"EXTRA_ARGS\", \"\")"),
+        ):
+            data = yaml.load(path.read_text(), Loader=yaml.BaseLoader)
+            if path == WORKFLOW:
+                script = TEMPLATE
+            else:
+                script = data["jobs"]["eval"]["steps"][-1]["run"]
+            start = script.index("python3 -c '") + len("python3 -c '")
+            body = script[start:script.index("'", start)].lstrip("\n")
+            self.assertFalse(body[:1].isspace(), body[:80])
+            self.assertIn(marker, body)
+
     def test_quoted_cargo_extra_args_stay_one_argument(self):
         result = self.run_vm(build_extra='--features "alpha beta"')
         self.assertEqual(result["code"], 0, result)
